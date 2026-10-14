@@ -13,11 +13,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          log-accepted-android-sdk-licenses: false
-
       - name: Setup Gradle wrapper
         run: |
           if [ ! -f gradlew ]; then
