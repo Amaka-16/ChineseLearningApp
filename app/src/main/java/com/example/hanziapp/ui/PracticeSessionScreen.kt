@@ -25,6 +25,7 @@ fun PracticeSessionScreen(
     var queue by remember { mutableStateOf<List<Character>>(emptyList()) }
     var index by remember { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<CardState?>(null) }
+    var revealed by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
@@ -73,6 +74,7 @@ fun PracticeSessionScreen(
         Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Progress row
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -86,68 +88,80 @@ fun PracticeSessionScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
 
+        // Character — always visible
         Text(character.hanzi, fontSize = 120.sp, fontWeight = FontWeight.Bold)
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = { tts.speak(character.hanzi) }) { Text("🔊") }
-            Spacer(Modifier.width(12.dp))
-            Text(character.pinyin, fontSize = 28.sp)
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(character.definition, fontSize = 18.sp)
+        // Sound button — always visible
+        Button(onClick = { tts.speak(character.hanzi) }) { Text("🔊 Listen") }
 
         Spacer(Modifier.height(24.dp))
 
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            VerdictButton(
-                label = "Known",
-                selected = selected == CardState.KNOWN,
-                modifier = Modifier.weight(1f)
-            ) { selected = CardState.KNOWN }
+        if (!revealed) {
+            // Hidden state: only Show Answer button
+            Button(
+                onClick = { revealed = true },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Show Answer") }
+        } else {
+            // Revealed state: pinyin, meaning, verdicts, canvas, next
+            Text(character.pinyin, fontSize = 28.sp)
 
-            VerdictButton(
-                label = "Learning",
-                selected = selected == CardState.LEARNING,
-                modifier = Modifier.weight(1f)
-            ) { selected = CardState.LEARNING }
+            Spacer(Modifier.height(8.dp))
 
-            VerdictButton(
-                label = "Unknown",
-                selected = selected == CardState.UNKNOWN,
-                modifier = Modifier.weight(1f)
-            ) { selected = CardState.UNKNOWN }
+            Text(character.definition, fontSize = 18.sp)
+
+            Spacer(Modifier.height(24.dp))
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                VerdictButton(
+                    label = "Known",
+                    selected = selected == CardState.KNOWN,
+                    modifier = Modifier.weight(1f)
+                ) { selected = CardState.KNOWN }
+
+                VerdictButton(
+                    label = "Learning",
+                    selected = selected == CardState.LEARNING,
+                    modifier = Modifier.weight(1f)
+                ) { selected = CardState.LEARNING }
+
+                VerdictButton(
+                    label = "Unknown",
+                    selected = selected == CardState.UNKNOWN,
+                    modifier = Modifier.weight(1f)
+                ) { selected = CardState.UNKNOWN }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            WritingCanvas(Modifier.fillMaxWidth())
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val verdict = selected ?: CardState.LEARNING
+                    scope.launch {
+                        val existing = repo.getProgress(character.hanzi)
+                            ?: UserProgress(hanzi = character.hanzi, state = CardState.NEW)
+                        val updated = applyVerdict(existing, verdict)
+                        repo.saveProgress(updated)
+                        selected = null
+                        revealed = false
+                        index++
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = selected != null
+            ) { Text("Next") }
         }
-
-        Spacer(Modifier.height(16.dp))
-
-        WritingCanvas(Modifier.fillMaxWidth())
-
-        Spacer(Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                val verdict = selected ?: CardState.LEARNING
-                scope.launch {
-                    val existing = repo.getProgress(character.hanzi)
-                        ?: UserProgress(hanzi = character.hanzi, state = CardState.NEW)
-                    val updated = applyVerdict(existing, verdict)
-                    repo.saveProgress(updated)
-                    selected = null
-                    index++
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = selected != null
-        ) { Text("Next") }
     }
 }
 
