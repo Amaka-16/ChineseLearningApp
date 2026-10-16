@@ -13,13 +13,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hanziapp.data.Character
 import com.example.hanziapp.data.CharacterRepository
-import com.example.hanziapp.tts.TtsManager
+import com.example.hanziapp.tts.
+import kotlinx.coroutines.launch
 
 @Composable
 fun LibraryScreen(repo: CharacterRepository, tts: TtsManager) {
     var query by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Character?>(null) }
+    val scope = rememberCoroutineScope()
 
     val results by if (query.isBlank()) {
         repo.allCharacters.collectAsState(initial = emptyList())
@@ -60,12 +62,14 @@ fun LibraryScreen(repo: CharacterRepository, tts: TtsManager) {
         }
     }
 
-    if (showAddDialog) {
+        if (showAddDialog) {
         AddCharacterDialog(
             onDismiss = { showAddDialog = false },
             onSave = { newChar ->
-                repo.addCharacter(newChar)
-                showAddDialog = false
+                scope.launch {
+                    repo.addCharacter(newChar)
+                    showAddDialog = false
+                }
             }
         )
     }

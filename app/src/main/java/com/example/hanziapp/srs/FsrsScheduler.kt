@@ -56,8 +56,8 @@ object FsrsScheduler {
             else -> s * (9 * (1 / 0.9 - 1)).pow(-1.0)
         }.coerceAtLeast(0.0)
 
-        val finalState = if (p.state == CardState.LEARNT || interval >= 21.0)
-            CardState.LEARNT else newState
+        val finalState = if (p.state == CardState.KNOWN || interval >= 21.0)
+            CardState.KNOWN else newState
 
         return p.copy(
             state = finalState,
