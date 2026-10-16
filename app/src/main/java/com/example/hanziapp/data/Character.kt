@@ -5,10 +5,14 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "characters")
 data class Character(
-    @PrimaryKey val hanzi: String,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val hanzi: String,
+    val traditional: String = "",
     val pinyin: String,
     val definition: String,
-    val strokeCount: Int,
+    val partOfSpeech: String = "",
+    val category: String = "",
+    val strokeCount: Int = 0,
     val hskLevel: Int = 0,
     val isWord: Boolean = false
 )
@@ -17,7 +21,7 @@ enum class CardState { NEW, LEARNING, KNOWN, UNKNOWN }
 
 @Entity(tableName = "progress")
 data class UserProgress(
-    @PrimaryKey val hanzi: String,
+    @PrimaryKey val characterId: Long,
     val state: CardState = CardState.NEW,
     val stability: Double = 0.0,
     val difficulty: Double = 0.0,

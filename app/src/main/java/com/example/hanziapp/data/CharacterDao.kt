@@ -9,8 +9,11 @@ interface CharacterDao {
     @Query("SELECT * FROM characters ORDER BY hanzi ASC")
     fun allCharacters(): Flow<List<Character>>
 
-    @Query("SELECT * FROM characters WHERE hanzi = :hanzi LIMIT 1")
-    suspend fun getCharacter(hanzi: String): Character?
+    @Query("SELECT * FROM characters WHERE hanzi = :hanzi")
+    suspend fun getCharactersByHanzi(hanzi: String): List<Character>
+
+    @Query("SELECT * FROM characters WHERE id = :id LIMIT 1")
+    suspend fun getCharacter(id: Long): Character?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCharacters(chars: List<Character>)
@@ -18,21 +21,27 @@ interface CharacterDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCharacter(character: Character)
 
-    @Query("SELECT * FROM characters WHERE hanzi LIKE '%' || :q || '%' OR pinyin LIKE '%' || :q || '%' OR definition LIKE '%' || :q || '%' ORDER BY hanzi ASC LIMIT 200")
+    @Query("SELECT * FROM characters WHERE hanzi LIKE '%' || :q || '%' OR pinyin LIKE '%' || :q || '%' OR definition LIKE '%' || :q || '%' OR traditional LIKE '%' || :q || '%' ORDER BY hanzi ASC LIMIT 200")
     fun searchCharacters(q: String): Flow<List<Character>>
+
+    @Query("SELECT DISTINCT category FROM characters WHERE category != '' ORDER BY category ASC")
+    fun allCategories(): Flow<List<String>>
+
+    @Query("SELECT * FROM characters WHERE category = :category ORDER BY hanzi ASC")
+    fun charactersByCategory(category: String): Flow<List<Character>>
 
     @Query("SELECT * FROM progress")
     fun allProgress(): Flow<List<UserProgress>>
 
-    @Query("SELECT * FROM progress WHERE hanzi = :hanzi LIMIT 1")
-    suspend fun getProgress(hanzi: String): UserProgress?
+    @Query("SELECT * FROM progress WHERE characterId = :id LIMIT 1")
+    suspend fun getProgress(id: Long): UserProgress?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertProgress(progress: UserProgress)
 
     @Query("""
         SELECT c.* FROM characters c
-        INNER JOIN progress p ON c.hanzi = p.hanzi
+        INNER JOIN progress p ON c.id = p.characterId
         WHERE p.state = :state
         ORDER BY RANDOM() LIMIT :limit
     """)
@@ -40,8 +49,8 @@ interface CharacterDao {
 
     @Query("""
         SELECT c.* FROM characters c
-        LEFT JOIN progress p ON c.hanzi = p.hanzi
-        WHERE p.hanzi IS NULL OR p.state = 'NEW'
+        LEFT JOIN progress p ON c.id = p.characterId
+        WHERE p.characterId IS NULL OR p.state = 'NEW'
         ORDER BY RANDOM() LIMIT :limit
     """)
     suspend fun getRandomNew(limit: Int): List<Character>

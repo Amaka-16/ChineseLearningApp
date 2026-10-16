@@ -40,10 +40,12 @@ fun LibraryScreen(repo: CharacterRepository, tts: TtsManager) {
             Spacer(Modifier.width(8.dp))
             Button(onClick = { showAddDialog = true }) { Text("Add") }
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
+        Text("${results.size} entries", fontSize = 12.sp)
+        Spacer(Modifier.height(8.dp))
 
         LazyColumn {
-            items(results) { c ->
+            items(results, key = { it.id }) { c ->
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -51,10 +53,18 @@ fun LibraryScreen(repo: CharacterRepository, tts: TtsManager) {
                         .padding(12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(c.hanzi, fontSize = 24.sp)
                     Column {
+                        Text(c.hanzi, fontSize = 24.sp)
+                        if (c.traditional.isNotBlank() && c.traditional != c.hanzi) {
+                            Text("( ${c.traditional} )", fontSize = 12.sp)
+                        }
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
                         Text(c.pinyin)
                         Text(c.definition, fontSize = 12.sp)
+                        if (c.partOfSpeech.isNotBlank()) {
+                            Text(c.partOfSpeech, fontSize = 10.sp)
+                        }
                     }
                 }
                 HorizontalDivider()
@@ -75,11 +85,7 @@ fun LibraryScreen(repo: CharacterRepository, tts: TtsManager) {
     }
 
     selected?.let { c ->
-        FlashcardDialog(
-            character = c,
-            tts = tts,
-            onDismiss = { selected = null }
-        )
+        FlashcardDialog(character = c, tts = tts, onDismiss = { selected = null })
     }
 }
 
@@ -94,6 +100,9 @@ fun FlashcardDialog(character: Character, tts: TtsManager, onDismiss: () -> Unit
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(character.hanzi, fontSize = 96.sp, fontWeight = FontWeight.Bold)
+                if (character.traditional.isNotBlank() && character.traditional != character.hanzi) {
+                    Text("( ${character.traditional} )", fontSize = 18.sp)
+                }
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { tts.speak(character.hanzi) }) {
@@ -104,6 +113,10 @@ fun FlashcardDialog(character: Character, tts: TtsManager, onDismiss: () -> Unit
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(character.definition, fontSize = 16.sp)
+                if (character.partOfSpeech.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(character.partOfSpeech, fontSize = 13.sp)
+                }
             }
         },
         confirmButton = {
@@ -118,8 +131,10 @@ fun AddCharacterDialog(
     onSave: (Character) -> Unit
 ) {
     var hanzi by remember { mutableStateOf("") }
+    var traditional by remember { mutableStateOf("") }
     var pinyin by remember { mutableStateOf("") }
     var definition by remember { mutableStateOf("") }
+    var pos by remember { mutableStateOf("") }
     var strokes by remember { mutableStateOf("1") }
 
     AlertDialog(
@@ -127,9 +142,11 @@ fun AddCharacterDialog(
         title = { Text("Add a character") },
         text = {
             Column {
-                OutlinedTextField(value = hanzi, onValueChange = { hanzi = it }, label = { Text("Hanzi") })
+                OutlinedTextField(value = hanzi, onValueChange = { hanzi = it }, label = { Text("Hanzi (simplified)") })
+                OutlinedTextField(value = traditional, onValueChange = { traditional = it }, label = { Text("Traditional (optional)") })
                 OutlinedTextField(value = pinyin, onValueChange = { pinyin = it }, label = { Text("Pinyin") })
                 OutlinedTextField(value = definition, onValueChange = { definition = it }, label = { Text("Meaning") })
+                OutlinedTextField(value = pos, onValueChange = { pos = it }, label = { Text("Part of speech (optional)") })
                 OutlinedTextField(value = strokes, onValueChange = { strokes = it }, label = { Text("Strokes") })
             }
         },
@@ -140,9 +157,12 @@ fun AddCharacterDialog(
                     onSave(
                         Character(
                             hanzi = hanzi.trim(),
+                            traditional = traditional.trim(),
                             pinyin = pinyin.trim(),
                             definition = definition.trim(),
-                            strokeCount = strokes.toIntOrNull() ?: 1,
+                            partOfSpeech = pos.trim(),
+                            category = "user_added",
+                            strokeCount = strokes.toIntOrNull() ?: 0,
                             hskLevel = 0,
                             isWord = hanzi.trim().length > 1
                         )

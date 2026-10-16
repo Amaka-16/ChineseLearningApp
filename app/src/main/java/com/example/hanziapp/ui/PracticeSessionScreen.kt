@@ -34,7 +34,9 @@ fun PracticeSessionScreen(
     }
 
     if (loading) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
         return
     }
 
@@ -74,7 +76,6 @@ fun PracticeSessionScreen(
         Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Progress row
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -90,29 +91,35 @@ fun PracticeSessionScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        // Character — always visible
+        // Character (always visible)
         Text(character.hanzi, fontSize = 120.sp, fontWeight = FontWeight.Bold)
+        if (character.traditional.isNotBlank() && character.traditional != character.hanzi) {
+            Text("( ${character.traditional} )", fontSize = 20.sp)
+        }
 
         Spacer(Modifier.height(16.dp))
 
-        // Sound button — always visible
+        // Sound (always visible)
         Button(onClick = { tts.speak(character.hanzi) }) { Text("🔊 Listen") }
 
         Spacer(Modifier.height(24.dp))
 
         if (!revealed) {
-            // Hidden state: only Show Answer button
             Button(
                 onClick = { revealed = true },
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Show Answer") }
         } else {
-            // Revealed state: pinyin, meaning, verdicts, canvas, next
             Text(character.pinyin, fontSize = 28.sp)
 
             Spacer(Modifier.height(8.dp))
 
             Text(character.definition, fontSize = 18.sp)
+
+            if (character.partOfSpeech.isNotBlank()) {
+                Spacer(Modifier.height(4.dp))
+                Text(character.partOfSpeech, fontSize = 13.sp)
+            }
 
             Spacer(Modifier.height(24.dp))
 
@@ -149,8 +156,8 @@ fun PracticeSessionScreen(
                 onClick = {
                     val verdict = selected ?: CardState.LEARNING
                     scope.launch {
-                        val existing = repo.getProgress(character.hanzi)
-                            ?: UserProgress(hanzi = character.hanzi, state = CardState.NEW)
+                        val existing = repo.getProgress(character.id)
+                            ?: UserProgress(characterId = character.id, state = CardState.NEW)
                         val updated = applyVerdict(existing, verdict)
                         repo.saveProgress(updated)
                         selected = null
