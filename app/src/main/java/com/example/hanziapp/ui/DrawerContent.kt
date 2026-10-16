@@ -3,6 +3,7 @@ package com.example.hanziapp.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,7 +17,7 @@ private data class NavItem(val route: String, val label: String, val icon: Image
 
 private val items = listOf(
     NavItem("dashboard",    "Dashboard",     Icons.Default.Home),
-    NavItem("library",      "Library",       Icons.Default.List),
+    NavItem("library",      "Library",       Icons.AutoMirrored.Filled.List),
     NavItem("practice",     "Practice",      Icons.Default.Edit),
     NavItem("random",       "Random Test",   Icons.Default.Refresh),
     NavItem("sentences",    "Sentences",     Icons.Default.Menu),

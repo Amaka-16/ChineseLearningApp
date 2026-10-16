@@ -16,7 +16,7 @@ interface CharacterDao {
     suspend fun insertCharacters(chars: List<Character>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCharacter(char: Character)
+    suspend fun insertCharacter(character: Character)
 
     @Query("SELECT * FROM characters WHERE hanzi LIKE '%' || :q || '%' OR pinyin LIKE '%' || :q || '%' OR definition LIKE '%' || :q || '%' ORDER BY hanzi ASC LIMIT 200")
     fun searchCharacters(q: String): Flow<List<Character>>
