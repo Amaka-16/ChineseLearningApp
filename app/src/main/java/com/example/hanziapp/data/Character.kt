@@ -9,10 +9,11 @@ data class Character(
     val pinyin: String,
     val definition: String,
     val strokeCount: Int,
-    val hskLevel: Int = 0
+    val hskLevel: Int = 0,
+    val isWord: Boolean = false
 )
 
-enum class CardState { NEW, LEARNING, LEARNT }
+enum class CardState { NEW, LEARNING, KNOWN, UNKNOWN }
 
 @Entity(tableName = "progress")
 data class UserProgress(
