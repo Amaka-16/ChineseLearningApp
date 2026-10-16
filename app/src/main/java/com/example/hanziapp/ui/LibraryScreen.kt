@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hanziapp.data.Character
 import com.example.hanziapp.data.CharacterRepository
-import com.example.hanziapp.tts.
+import com.example.hanziapp.tts.TtsManager
 import kotlinx.coroutines.launch
 
 @Composable
@@ -62,7 +62,7 @@ fun LibraryScreen(repo: CharacterRepository, tts: TtsManager) {
         }
     }
 
-        if (showAddDialog) {
+    if (showAddDialog) {
         AddCharacterDialog(
             onDismiss = { showAddDialog = false },
             onSave = { newChar ->
