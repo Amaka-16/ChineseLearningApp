@@ -13,11 +13,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle wrapper
-        run: |
-          if [ ! -f gradlew ]; then
-            gradle wrapper --gradle-version 8.4
-          fi
+      - name: Setup Gradle 8.4 wrapper
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+
+      - name: Generate Gradle wrapper
+        run: gradle wrapper --gradle-version 8.4
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon
